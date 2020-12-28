@@ -1,0 +1,12 @@
+name: esca-navigator
+title: esca-navigator
+username:
+account: cjcallag
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 3433277
+bundleId: 4036799
+url: https://cjcallag.shinyapps.io/esca-navigator/
+when: 1609196564.67806
+asMultiple: FALSE
+asStatic: FALSE
