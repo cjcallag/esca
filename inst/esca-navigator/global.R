@@ -1,7 +1,8 @@
 # Load up all required packages ================================================
+library(devtools)
 devtools::install_github("cjcallag/esca")
 suppressPackageStartupMessages({
-  library(esca)
+  require(esca)
   library(htmltools)
   library(leaflet)
   library(shiny)
