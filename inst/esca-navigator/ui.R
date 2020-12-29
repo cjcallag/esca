@@ -2,7 +2,12 @@ shinyUI(
     fluidPage(
         tags$style('.container-fluid {background-color: #FFFFFF;}'),
         titlePanel(tags$div(
-            tags$img(src = "logo.png"), "ESCA Explorer")
+            tags$img(src = "logo.png"), 
+            "ESCA Explorer",
+            tags$span(actionButton('load_about', 'About'),
+                      style = "position:absolute;right:0.5em;")
+            ),
+            windowTitle = "ESCA-Explorer"
             ),
         theme = shinytheme("paper"),
         tags$br(),

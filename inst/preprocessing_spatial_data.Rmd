@@ -36,7 +36,7 @@ save(ft_ord, file = here::here("data/ft_ord.rda"))
 The roads and gates data in this section was initially adquired through OSM and validated by CSUMB graduate students for the purposes of developing a fire prevention plan. These data were provided as `*.shp` files.
 
 ```{r}
-roads <- sf::st_read(here::here("inst/extdata/chris_roads.shp")) %>%
+roads <- sf::st_read(here::here("inst/extdata/roads200522.shp")) %>%
   sf::st_transform(., '+proj=longlat +datum=WGS84') %>%
   dplyr::select(name, inspection_status = insp_stus, date = insp_dt,
                 surface_type = srfc, condition = cndtn, 
