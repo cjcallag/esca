@@ -104,3 +104,70 @@ Store it for quick access in R package:
 ```{r}
 save(parcels, file = here::here("data/parcels.rda"))
 ```
+
+
+### ESCA
+
+Found [here](https://fort-ord-cleanup-open-data-cespk.hub.arcgis.com/datasets/dudded-impact-area-esca-mra/geoservice?geometry=-121.898%2C36.608%2C-121.651%2C36.656)
+
+```{r}
+esca <- sf::st_read("https://maps.fodis.net/server/rest/services/OpenData/Environmental/FeatureServer/3/query?where=1%3D1&outFields=*&outSR=4326&f=json")
+```
+
+```{r}
+plot(esca["imparea_id"])
+```
+
+
+### Fort Ord Parcel Parcels
+
+The layer of parcels per ACE is found [here](https://maps.fodis.net/server/rest/services/FeatureServices/PublicParcels/MapServer/2). In essence, it contains the shapes of the parcels and fields of interest, such as: HMP category, COE number, Parcel recipient, Jurisdiction, etc.
+
+```{r}
+fo_parcels <- sf::st_read("https://maps.fodis.net/server/rest/services/FeatureServices/PublicParcels/MapServer/2/query?where=1%3D1&outFields=*&outSR=4326&f=json")
+```
+
+```{r}
+plot(fo_parcels["FortOrd.DBO.tblParcel.Jurisdiction"])
+```
+
+Isolate ESCA parcels:
+
+```{r}
+esca_fo_parcels <- fo_parcels[fo_parcels$FortOrd.DBO.tblParcel.TransferDocName == "FOSET 5 (ESCA and Non-ESCA OUCTP)", ]
+```
+
+```{r}
+plot(esca_fo_parcels["FortOrd.DBO.tblParcel.Jurisdiction"])
+```
+
+```{r}
+esca_join <- st_join(x = esca_fo_parcels, y = esca)
+plot(esca_join["imparea_id"])
+```
+
+Clean it up:
+
+```{r}
+esca_join <- esca_join[!is.na(esca_join$FortOrd.DBO.PARCEL_AREA.FortOrd_DBO_tblParcel_COENumber), ]
+esca_parcels <- esca_join[!is.na(esca_join$imparea_id), ]
+plot(esca_parcels["imparea_id"])
+```
+
+Store it for quick access in R package:
+
+```{r}
+save(esca_parcels, file = here::here("data/esca_parcels.rda"))
+```
+
+
+
+### Extras
+
+# ```{r}
+# test <- sf::st_read("https://maps.fodis.net/server/rest/services/OpenData/AdministrativeBoundaries/FeatureServer/1//query?where=1%3D1&outFields=*&outSR=4326&f=json")
+# ```
+
+
+
+
