@@ -71,7 +71,7 @@ shinyServer(function(input, output) {
                                        "</table>"),
                   group       = "County Parcels") %>%
       addPolylines(data      = roads,
-                   group     = "Roads",
+                   group     = "Roads and Trails",
                    weight    = 3,
                    label     = roads$name,
                    opacity   = 0.5,
@@ -112,10 +112,10 @@ shinyServer(function(input, output) {
       # Layers control
       addLayersControl(
           baseGroups    = c("Basemap", "Imagery"),
-          overlayGroups = c("ESCA Parcels", "Ft. Ord Boundary", "Gates", "County Parcels", "Roads"),
+          overlayGroups = c("ESCA Parcels", "Ft. Ord Boundary", "Gates", "County Parcels", "Roads and Trails"),
           position      = "topright",
           options       = layersControlOptions(collapsed = FALSE)) %>%
-      hideGroup(c("Gates", "County Parcels", "Roads")) %>%
+      hideGroup(c("Gates", "County Parcels", "Roads and Trails")) %>%
       addLegend(position = "bottomright",
                 pal      = my_pal,
                 values   = esca[["mra"]],
