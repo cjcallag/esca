@@ -112,12 +112,12 @@ Found [here](https://fort-ord-cleanup-open-data-cespk.hub.arcgis.com/datasets/du
 
 ```{r}
 esca <- sf::st_read("https://maps.fodis.net/server/rest/services/OpenData/Environmental/FeatureServer/3/query?where=1%3D1&outFields=*&outSR=4326&f=json")
+esca <- esca[, c("imparea_id", "MRA")]
 ```
 
 ```{r}
 plot(esca["imparea_id"])
 ```
-
 
 ### Fort Ord Parcel Parcels
 
@@ -145,13 +145,36 @@ plot(esca_fo_parcels["FortOrd.DBO.tblParcel.Jurisdiction"])
 esca_join <- st_join(x = esca_fo_parcels, y = esca)
 plot(esca_join["imparea_id"])
 ```
-
 Clean it up:
 
 ```{r}
 esca_join <- esca_join[!is.na(esca_join$FortOrd.DBO.PARCEL_AREA.FortOrd_DBO_tblParcel_COENumber), ]
 esca_parcels <- esca_join[!is.na(esca_join$imparea_id), ]
+colnames(esca_parcels) <- sub("FortOrd.DBO.tblParcel.", "", colnames(esca_parcels))
+colnames(esca_parcels) <- sub("FortOrd.DBO.PARCEL_AREA.", "", colnames(esca_parcels))
+esca_parcels <- esca_parcels[, c("COENumber", "parcel_id", "ParcelName", "HMP_category",
+                                 "Authority", "Category", "Acreage", "AcreageType",
+                                 "OESite", "FOSETDoc", "FOSETStatus", "FOSETDate",
+                                 "TrackingNumber_Name", "NewFORAName", "EnvironmentalComments",
+                                 "BRACComments", "TransferDocName", "imparea_id",
+                                 "MRA", "Jurisdiction")]
 plot(esca_parcels["imparea_id"])
+```
+
+Add LUCs:
+
+```{r}
+lucs <- sf::st_read("https://services2.arcgis.com/nOGTdfb4kF4dZljH/ArcGIS/rest/services/FtOrd_LUCs/FeatureServer/0/query?where=1%3D1&outFields=*&outSR=4326&f=json")
+lucs <- lucs[lucs$COENumber %in% esca_parcels[["COENumber"]], ] %>%
+  st_set_geometry(NULL)
+esca_parcels <- merge(x = esca_parcels,
+                      y = lucs[, c("COENumber", "Jurisdicti",
+                                   "Covenant", "C1", "C2", "C3", "C4", "C5",
+                                   "C6", "C7", "C8", "C9")],
+                      by = "COENumber", all.x = TRUE)
+esca_parcels$Jurisdicti <- ifelse(test = is.na(esca_parcels$Jurisdicti),
+                                  esca_parcels$Jurisdiction,
+                                  esca_parcels$Jurisdicti)
 ```
 
 Store it for quick access in R package:

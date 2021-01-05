@@ -33,19 +33,23 @@ shinyServer(function(input, output) {
                                        "</td></tr>",
                                        # COE Field -----------------------------
                                        "<tr><th><b>COE Id: </b></th><td>",
-                                       esca[["FortOrd.DBO.tblParcel.COENumber"]],
+                                       esca[["COENumber"]],
                                        "</td></tr>",
                                        # Parcel Category Field -----------------
                                        "<tr><th><b>Parcel Category: </b></th><td>",
-                                       esca[["FortOrd.DBO.tblParcel.HMP_category"]],
+                                       esca[["HMP_category"]],
                                        "</td></tr>",
                                        # LUCIP/OMP Field -----------------------
                                        "<tr><th><b>LUCIP/OMP: </b></th><td>",
                                        esca[["mra_link"]], 
                                        "</td></tr>",
+                                       # LUCs Field ----------------------------
+                                       "<tr><th><b>Covenant: </b></th><td>",
+                                       esca[["mra_luc"]],
+                                       "</td></tr>",
                                        # Jurisdiction Field --------------------
                                        "<tr><th><b>Jurisdiction: </b></th><td>",
-                                       esca[["FortOrd.DBO.tblParcel.Jurisdiction"]], 
+                                       esca[["Jurisdicti"]], 
                                        "</td></tr>",
                                        # LE Contact Field ----------------------
                                        "<tr><th><b>LE POC: </b></th><td>",

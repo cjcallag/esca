@@ -1,7 +1,7 @@
 # Load up all required packages ================================================
-# library(devtools)
-# if(require(esca) == FALSE)
-#   devtools::install_github("cjcallag/esca")
+library(devtools)
+# To deploy it must install from GH --------------------------------------------
+devtools::install_github("cjcallag/esca")
 
 suppressPackageStartupMessages({
   library(htmltools)
@@ -25,13 +25,28 @@ esca    <- esca::esca_parcels
 
 # Clean data ===================================================================
 delete_me <- row.names(
-  esca[esca$FortOrd.DBO.tblParcel.COENumber == "S1.3.2" &
-         esca$imparea_id != "CSUMB Off-Campus", ]
+  esca[esca$COENumber == "S1.3.2" & esca$imparea_id != "CSUMB Off-Campus", ]
   )
 esca      <- esca[!row.names(esca) %in% delete_me, ]
 delete_me <- row.names(
-  esca[esca$FortOrd.DBO.tblParcel.COENumber %in% c("E38", "E39", "E42", "E41", "E40") &
+  esca[esca$COENumber %in% c("E38", "E39", "E42", "E41", "E40") &
          esca$imparea_id != "Interim Action Range", ])
+esca      <- esca[!row.names(esca) %in% delete_me, ]
+delete_me <- row.names(
+  esca[esca$COENumber == "L5.7" & esca$imparea_id != "County North", ]
+)
+esca      <- esca[!row.names(esca) %in% delete_me, ]
+delete_me <- row.names(
+  esca[esca$COENumber == "L20.5.1" & esca$imparea_id != "Barloy Canyon", ]
+)
+esca      <- esca[!row.names(esca) %in% delete_me, ]
+delete_me <- row.names(
+  esca[esca$COENumber == "E19a.4" & esca$imparea_id != "Parker Flats", ]
+)
+esca      <- esca[!row.names(esca) %in% delete_me, ]
+delete_me <- row.names(
+  esca[esca$COENumber == "E19a.3" & esca$imparea_id != "Parker Flats", ]
+)
 esca      <- esca[!row.names(esca) %in% delete_me, ]
 
 # Add MRA variables ============================================================
@@ -63,6 +78,27 @@ esca[["mra_link"]] <- ifelse(esca[["mra"]] == "Group 4",
                              "<a href='https://docs.fortordcleanup.com/ar_pdfs/AR-ESCA-0364B//ESCA-0364B.pdf'>Group 4</a>",
                              esca[["mra_link"]])
 
+# Add MRA LUC ==================================================================
+checkmark <- function(x) {
+  sapply(x, function(y) ifelse(y != "Yes" | is.na(y),  "", "<span>&#10003;</span>"))
+}
+esca[["mra_luc"]] <- paste0("<table><thead>
+                             <tr><th colspan='9'><center>", esca[["Covenant"]],"</center></th></tr>",
+                            "<tr><th>C1</th><th>C2</th><th>C3</th><th>C4</th><th>C5</th><th>C6</th><th>C7</th><th>C8</th><th>C9</th></tr></thead>",
+                            "<tr>",
+                            "<td>", checkmark(esca[["C1"]]), "</td>",
+                            "<td>", checkmark(esca[["C2"]]), "</td>",
+                            "<td>", checkmark(esca[["C3"]]), "</td>",
+                            "<td>", checkmark(esca[["C4"]]), "</td>",
+                            "<td>", checkmark(esca[["C5"]]), "</td>",
+                            "<td>", checkmark(esca[["C6"]]), "</td>",
+                            "<td>", checkmark(esca[["C7"]]), "</td>",
+                            "<td>", checkmark(esca[["C8"]]), "</td>",
+                            "<td>", checkmark(esca[["C9"]]), "</td>",
+                            "</tr>",
+                      "</table>")
+
+
 # Add MRA LE POC ===============================================================
 esca[["mra_poc"]] <- "<table>
                              <tr><th><b>Name: </b></th><td>TBD</td></tr>
@@ -71,7 +107,8 @@ esca[["mra_poc"]] <- "<table>
                              <tr><th><b>Number: </b></th><td>TBD</td></tr>
                              <tr><th><b>Email: </b></th><td>TBD</td></tr>
                       </table>"
-esca[["mra_poc"]] <- ifelse(esca[["FortOrd.DBO.tblParcel.Jurisdiction"]] == "Seaside",
+esca[["mra_poc"]] <- ifelse(esca[["Jurisdicti"]] == "Seaside" |
+                              esca[["Jurisdicti"]] == "MPC (Seaside)",
                             "<table>
                              <tr><th><b>Name: </b></th><td>Borges, Nicholas</td></tr>
                              <tr><th><b>Title: </b></th><td>Deputy Police Chief</td></tr>
@@ -81,7 +118,7 @@ esca[["mra_poc"]] <- ifelse(esca[["FortOrd.DBO.tblParcel.Jurisdiction"]] == "Sea
                             </table>",
                             esca[["mra_poc"]]
                             )
-esca[["mra_poc"]] <- ifelse(esca[["FortOrd.DBO.tblParcel.Jurisdiction"]] == "Del Rey Oaks",
+esca[["mra_poc"]] <- ifelse(esca[["Jurisdicti"]] == "Del Rey Oaks",
                             "<table>
                              <tr><th><b>Name: </b></th><td>Hoyne, Jeff</td></tr>
                              <tr><th><b>Title: </b></th><td>Police Chief</td></tr>
@@ -91,7 +128,7 @@ esca[["mra_poc"]] <- ifelse(esca[["FortOrd.DBO.tblParcel.Jurisdiction"]] == "Del
                             </table>",
                             esca[["mra_poc"]]
 )
-esca[["mra_poc"]] <- ifelse(esca[["FortOrd.DBO.tblParcel.Jurisdiction"]] == "City of Monterey",
+esca[["mra_poc"]] <- ifelse(esca[["Jurisdicti"]] == "City of Monterey",
                             "<table>
                              <tr><th><b>Name: </b></th><td>Hober, Dave</td></tr>
                              <tr><th><b>Title: </b></th><td>Police Chief</td></tr>
@@ -101,7 +138,7 @@ esca[["mra_poc"]] <- ifelse(esca[["FortOrd.DBO.tblParcel.Jurisdiction"]] == "Cit
                             </table>",
                             esca[["mra_poc"]]
 )
-esca[["mra_poc"]] <- ifelse(esca[["imparea_id"]] == "CSUMB Off-Campus",
+esca[["mra_poc"]] <- ifelse(esca[["Jurisdicti"]] == "CSUMB (Monterey County)",
                             "<table>
                              <tr><th><b>Name: </b></th><td>Folsom, Ken</td></tr>
                              <tr><th><b>Title: </b></th><td>Emergency Manager</td></tr>
