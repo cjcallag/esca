@@ -184,6 +184,32 @@ save(esca_parcels, file = here::here("data/esca_parcels.rda"))
 ```
 
 
+### Add Signage
+
+All of these came from field visits and stored as a geojson:
+
+```{r}
+signs <- sf::read_sf(here::here("inst/extdata/Labeled Places.json")) %>%
+  filter(name == "esca_sign") %>%
+  select(name) %>%
+  st_intersection(., ft_ord)
+```
+
+```{r}
+ggplot() +
+  geom_sf(data = ft_ord, fill = "white", size = 0.5) +
+  geom_sf(data = esca, color = NA, fill = "slategrey") +
+   geom_sf(data = signs, size = 0.5) +
+  theme_minimal()
+```
+
+Store it for quick access in R package:
+
+```{r}
+save(signs, file = here::here("data/signs.rda"))
+```
+
+
 
 ### Extras
 
