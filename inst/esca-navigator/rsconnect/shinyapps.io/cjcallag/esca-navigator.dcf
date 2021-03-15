@@ -5,8 +5,9 @@ account: cjcallag
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 3433277
-bundleId: 4055162
+bundleId: 4297600
 url: https://cjcallag.shinyapps.io/esca-navigator/
-when: 1609736925.93079
+when: 1614815198.52326
 asMultiple: FALSE
 asStatic: FALSE
+ignoredFiles: www/.DS_Store

@@ -1,8 +1,4 @@
 # Load up all required packages ================================================
-library(devtools)
-# To deploy it must install from GH --------------------------------------------
-devtools::install_github("cjcallag/esca")
-
 suppressPackageStartupMessages({
   library(htmltools)
   library(leaflet)
@@ -17,153 +13,78 @@ suppressPackageStartupMessages({
 source("modals.R")
 
 # Import data ==================================================================
-roads   <- esca::roads
-gates   <- esca::gates
-ftord   <- esca::ft_ord
-parcels <- esca::parcels
-esca    <- esca::esca_parcels
+load("data/esca.rda")
+load("data/ft_ord.rda")
+load("data/roads.rda")
+load("data/gates.rda")
+load("data/parcels.rda")
 
-# Clean data ===================================================================
-delete_me <- row.names(
-  esca[esca$COENumber == "S1.3.2" & esca$imparea_id != "CSUMB Off-Campus", ]
-  )
-esca      <- esca[!row.names(esca) %in% delete_me, ]
-delete_me <- row.names(
-  esca[esca$COENumber %in% c("E38", "E39", "E42", "E41", "E40") &
-         esca$imparea_id != "Interim Action Range", ])
-esca      <- esca[!row.names(esca) %in% delete_me, ]
-delete_me <- row.names(
-  esca[esca$COENumber == "L5.7" & esca$imparea_id != "County North", ]
-)
-esca      <- esca[!row.names(esca) %in% delete_me, ]
-delete_me <- row.names(
-  esca[esca$COENumber == "L20.5.1" & esca$imparea_id != "Barloy Canyon", ]
-)
-esca      <- esca[!row.names(esca) %in% delete_me, ]
-delete_me <- row.names(
-  esca[esca$COENumber == "E19a.4" & esca$imparea_id != "Parker Flats", ]
-)
-esca      <- esca[!row.names(esca) %in% delete_me, ]
-delete_me <- row.names(
-  esca[esca$COENumber == "E19a.3" & esca$imparea_id != "Parker Flats", ]
-)
-esca      <- esca[!row.names(esca) %in% delete_me, ]
-
-# Add MRA variables ============================================================
-esca[["mra"]] <- "Group 1"
-esca[["mra"]] <- ifelse(esca[["imparea_id"]] %in% c("County North",
-                                                    "CSUMB Off-Campus"),
-                        "Group 2",
-                        esca[["mra"]])
-esca[["mra"]] <- ifelse(esca[["imparea_id"]] %in% c("Barloy Canyon", 
-                                                    "DRO / Monterey", 
-                                                    "Interim Action Range",
-                                                    "Laguna Seca Parking",
-                                                    "MOUT"),
-                        "Group 3",
-                        esca[["mra"]])
-esca[["mra"]] <- ifelse(esca[["imparea_id"]] %in% c("Future East Garrison"),
-                        "Group 4",
-                        esca[["mra"]])
-
-# Add MRA hyperlinks to LUCIP/OMPs =============================================
-esca[["mra_link"]] <- "<a href='https://docs.fortordcleanup.com/ar_pdfs/AR-ESCA-0361B//ESCA-0361B.pdf'>Group 1</a>"
-esca[["mra_link"]] <- ifelse(esca[["mra"]] == "Group 2",
-                             "<a href='https://docs.fortordcleanup.com/ar_pdfs/AR-ESCA-0337B//ESCA-0337B.pdf'>Group 2</a>",
-                             esca[["mra_link"]])
-esca[["mra_link"]] <- ifelse(esca[["mra"]] == "Group 3",
-                             "<a href='https://docs.fortordcleanup.com/ar_pdfs/AR-ESCA-0301B//ESCA-0301B.pdf'>Group 3</a>",
-                             esca[["mra_link"]])
-esca[["mra_link"]] <- ifelse(esca[["mra"]] == "Group 4",
-                             "<a href='https://docs.fortordcleanup.com/ar_pdfs/AR-ESCA-0364B//ESCA-0364B.pdf'>Group 4</a>",
-                             esca[["mra_link"]])
 
 # Add MRA LUC ==================================================================
 checkmark <- function(x) {
-  sapply(x, function(y) ifelse(y != "Yes" | is.na(y),  "", "<span>&#10003;</span>"))
+  sapply(x, function(y) ifelse(y != "Yes" | is.na(y),  "N/A", "<span>&#10003;</span>"))
 }
-esca[["mra_luc"]] <- paste0("<table><thead>
-                             <tr><th colspan='9'><center>", esca[["Covenant"]],"</center></th></tr>",
-                            "<tr><th>C1</th><th>C2</th><th>C3</th><th>C4</th><th>C5</th><th>C6</th><th>C7</th><th>C8</th><th>C9</th></tr></thead>",
-                            "<tr>",
-                            "<td>", checkmark(esca[["C1"]]), "</td>",
-                            "<td>", checkmark(esca[["C2"]]), "</td>",
-                            "<td>", checkmark(esca[["C3"]]), "</td>",
-                            "<td>", checkmark(esca[["C4"]]), "</td>",
-                            "<td>", checkmark(esca[["C5"]]), "</td>",
-                            "<td>", checkmark(esca[["C6"]]), "</td>",
-                            "<td>", checkmark(esca[["C7"]]), "</td>",
-                            "<td>", checkmark(esca[["C8"]]), "</td>",
-                            "<td>", checkmark(esca[["C9"]]), "</td>",
-                            "</tr>",
-                      "</table>")
 
+lucs <- data.frame("group" = c("Group 1", "Group 2", "Group 3", "Group 4", "Interim Action Ranges"),
+                   "lucip" = c("https://docs.fortordcleanup.com/ar_pdfs/AR-ESCA-0361E//ESCA-0361E.pdf",
+                               "https://docs.fortordcleanup.com/ar_pdfs/AR-ESCA-0305B//ESCA-0305B.pdf",
+                               "https://docs.fortordcleanup.com/ar_pdfs/AR-ESCA-0301B//ESCA-0301B.pdf",
+                               "https://docs.fortordcleanup.com/ar_pdfs/AR-ESCA-0364B//ESCA-0364B.pdf",
+                               "https://docs.fortordcleanup.com/ar_pdfs/AR-ESCA-0337B//ESCA-0337B.pdf"),
+                   "rod"   = c("https://docs.fortordcleanup.com/ar_pdfs/AR-ESCA-0359//ESCA-0359.pdf",
+                               "https://docs.fortordcleanup.com/ar_pdfs/AR-ESCA-0298/ESCA-0298.pdf",
+                               "https://docs.fortordcleanup.com/ar_pdfs/AR-ESCA-0293/ESCA-0293.pdf",
+                               "https://docs.fortordcleanup.com/ar_pdfs/AR-ESCA-0360//ESCA-0360.pdf",
+                               "https://docs.fortordcleanup.com/ar_pdfs/AR-ESCA-0331//ESCA-0331.pdf"),
+                   "Munitions recognition training" = c("Yes", "Yes", "Yes", "Yes", "Yes"),
+                   "Construction support" = c("Yes", "Yes", "Yes", "Yes", "Yes"),
+                   "Access management for habitat reserve" = c("Yes", NA, NA, "Yes", NA),
+                   "Restrictions in residential use" = c("Yes", "Yes", "Yes", "Yes", "Yes"),
+                   "Restriction against inconsistent use" = c("Yes", NA, NA, "Yes", "Yes")
+                   )
+esca <- merge(esca, lucs, by = "group")
+esca[["Munitions.recognition.training"]] <- ifelse(esca[["mra"]] == "County North", "N/A", esca[["Munitions.recognition.training"]])
+esca[["Construction.support"]] <- ifelse(esca[["mra"]] == "County North", "N/A", esca[["Construction.support"]])
+esca[["Access.management.for.habitat.reserve"]] <- ifelse(esca[["mra"]] == "County North", "N/A", esca[["Access.management.for.habitat.reserve"]])
+esca[["Restrictions.in.residential.use"]] <- ifelse(esca[["mra"]] == "County North", "N/A", esca[["Restrictions.in.residential.use"]])
+esca[["Restriction.against.inconsistent.use"]] <- ifelse(esca[["mra"]] == "County North", "N/A", esca[["Restriction.against.inconsistent.use"]])
 
-# Add MRA LE POC ===============================================================
-esca[["mra_poc"]] <- "<table>
-                             <tr><th><b>Name: </b></th><td>TBD</td></tr>
-                             <tr><th><b>Title: </b></th><td>TBD</td></tr>
-                             <tr><th><b>Agency: </b></th><td>TBD</td></tr>
-                             <tr><th><b>Number: </b></th><td>TBD</td></tr>
-                             <tr><th><b>Email: </b></th><td>TBD</td></tr>
-                      </table>"
-esca[["mra_poc"]] <- ifelse(esca[["Jurisdicti"]] == "Seaside" |
-                              esca[["Jurisdicti"]] == "MPC (Seaside)",
-                            "<table>
-                             <tr><th><b>Name: </b></th><td>Borges, Nicholas</td></tr>
-                             <tr><th><b>Title: </b></th><td>Deputy Police Chief</td></tr>
-                             <tr><th><b>Agency: </b></th><td>Seaside Police Department</td></tr>
-                             <tr><th><b>Number: </b></th><td>(831) 899-6892</td></tr>
-                             <tr><th><b>Email: </b></th><td>nborges@ci.seaside.ca.us</td></tr>
-                            </table>",
-                            esca[["mra_poc"]]
-                            )
-esca[["mra_poc"]] <- ifelse(esca[["Jurisdicti"]] == "Del Rey Oaks",
-                            "<table>
-                             <tr><th><b>Name: </b></th><td>Hoyne, Jeff</td></tr>
-                             <tr><th><b>Title: </b></th><td>Police Chief</td></tr>
-                             <tr><th><b>Agency: </b></th><td>Del Rey Oaks Police Department</td></tr>
-                             <tr><th><b>Number: </b></th><td>(831) 375-8525</td></tr>
-                             <tr><th><b>Email: </b></th><td>jhoyne@delreyoaks.org</td></tr>
-                            </table>",
-                            esca[["mra_poc"]]
-)
-esca[["mra_poc"]] <- ifelse(esca[["Jurisdicti"]] == "City of Monterey",
-                            "<table>
-                             <tr><th><b>Name: </b></th><td>Hober, Dave</td></tr>
-                             <tr><th><b>Title: </b></th><td>Police Chief</td></tr>
-                             <tr><th><b>Agency: </b></th><td>City of Monterey Police Department</td></tr>
-                             <tr><th><b>Number: </b></th><td>(831) 646-3800</td></tr>
-                             <tr><th><b>Email: </b></th><td>hober@monterey.org</td></tr>
-                            </table>",
-                            esca[["mra_poc"]]
-)
-esca[["mra_poc"]] <- ifelse(esca[["Jurisdicti"]] == "CSUMB (Monterey County)",
-                            "<table>
-                             <tr><th><b>Name: </b></th><td>Folsom, Ken</td></tr>
-                             <tr><th><b>Title: </b></th><td>Emergency Manager</td></tr>
-                             <tr><th><b>Agency: </b></th><td>University Police Department</td></tr>
-                             <tr><th><b>Number: </b></th><td>(831) 582-3000</td></tr>
-                             <tr><th><b>Email: </b></th><td>kfolsom@csumb.edu</td></tr>
-                            </table>",
-                            esca[["mra_poc"]]
-)
-## TODO: Figure out who the county LE POC would be...
-
-
-
-# OLD ==========================================================================
-# roads[["color"]] <- "#ff7f00"
-# roads[["color"]] <- ifelse(roads[["surface_type"]] == "Highway",
-#                            "#e41a1c",
-#                            roads[["color"]])
-# roads[["color"]] <- ifelse(roads[["surface_type"]] == "Paved",
-#                            "#377eb8",
-#                            roads[["color"]])
-# roads[["color"]] <- ifelse(roads[["surface_type"]] == "Trail",
-#                            "#4daf4a",
-#                            roads[["color"]])
-# roads[["color"]] <- ifelse(roads[["surface_type"]] == "Unpaved",
-#                            "#984ea3",
-#                            roads[["color"]])
-
+esca[["popup"]] <- paste0("<table>",
+                          # COE Field -----------------------------
+                          "<tr><th><b>COE Id: </b></th><td>",
+                          esca[["coe"]],
+                          "</td></tr>",
+                          # MRA Field -----------------------------
+                          "<tr><th><b>MRA: </b></th><td>", 
+                          esca[["mra"]], 
+                          "</td></tr>",
+                          # Parcel Category Field -----------------
+                          "<tr><th><b>HMP Category: </b></th><td>",
+                          esca[["hmp_category"]],
+                          "</td></tr>",
+                          # Jurisdiction Field --------------------
+                          "<tr><th><b>Land Owner: </b></th><td>",
+                          esca[["land_holder"]], 
+                          "</td></tr>",
+                          # Jurisdiction Field --------------------
+                          "<tr><th><b>Jurisdiction: </b></th><td>",
+                          esca[["jurisdiction"]], 
+                          "</td></tr>",
+                          # Army ROD Field -----------------------
+                          "<tr><th><b>ROD: </b></th><td>",
+                          paste0("<a href=", esca[["rod"]], ">Here</a>"), 
+                          "</td></tr>",
+                          # LUCIP/OMP Field -----------------------
+                          "<tr><th><b>LUCIP/OMP: </b></th><td>",
+                          paste0("<a href=", esca[["lucip"]], ">Here</a>"), 
+                          "</td></tr>",
+                          # LUCs Field ----------------------------
+                          "<tr><th><b>MRA LUCS: </b></th><td>",
+                          "<table>
+                            <tr><th scope='row'>Munitions recognition training</th><td>", checkmark(esca[["Munitions.recognition.training"]]),"</td></tr>",
+                            "<tr><th scope='row'>Construction support</th><td>", checkmark(esca[["Construction.support"]]),"</td></tr>",
+                            "<tr><th scope='row'>Access management for habitat reserve</th><td>", checkmark(esca[["Access.management.for.habitat.reserve"]]),"</td></tr>",
+                            "<tr><th scope='row'>Restrictions in residential use</th><td>", checkmark(esca[["Restrictions.in.residential.use"]]),"</td></tr>",
+                            "<tr><th scope='row'>Restrictions agains inconsistent use</th><td>", checkmark(esca[["Restriction.against.inconsistent.use"]]),"</td></tr>",
+                          "</table>",
+                          "</table>")
